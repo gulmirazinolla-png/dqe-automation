@@ -1,0 +1,49 @@
+pipeline {
+    agent any
+
+    environment {
+        POSTGRES_HOST = 'postgres'
+        POSTGRES_PORT = '5432'
+        POSTGRES_DB = 'mydatabase'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Install dependencies') {
+            steps {
+                dir('PyTest DQ Framework') {
+                    sh 'python3 -m venv .venv'
+                    sh '.venv/bin/pip install -r requirements.txt'
+                }
+            }
+        }
+
+        stage('Run Parquet data checks') {
+            steps {
+                dir('PyTest DQ Framework') {
+                    // Scope database secrets to the test stage.
+                    withCredentials([usernamePassword(
+                        credentialsId: 'POSTGRES_SECRET',
+                        usernameVariable: 'POSTGRES_USER',
+                        passwordVariable: 'POSTGRES_PASSWORD'
+                    )]) {
+                        sh 'mkdir -p html_report'
+                        sh '.venv/bin/pytest -m parquet_data'
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            archiveArtifacts artifacts: 'PyTest DQ Framework/html_report/**',
+                allowEmptyArchive: true
+        }
+    }
+}
