@@ -4,6 +4,7 @@ Requirement(s): DQE-HW-1
 Author(s): Mira
 """
 
+import pandas as pd
 import pytest
 
 
@@ -18,13 +19,20 @@ def source_data(db_connection):
     JOIN facilities f ON v.facility_id = f.id
     GROUP BY f.facility_name, DATE(v.visit_timestamp)
     """
-    return db_connection.get_data_sql(source_query)
+    source = db_connection.get_data_sql(source_query)
+    source["visit_date"] = pd.to_datetime(source["visit_date"])
+    source["min_time_spent"] = source["min_time_spent"].astype(float)
+    return source
 
 
 @pytest.fixture(scope='module')
 def target_data(parquet_reader):
     target_path = '/parquet_data/facility_name_min_time_spent_per_visit_date'
-    return parquet_reader.process(target_path, include_subfolders=True)
+    target = parquet_reader.process(target_path, include_subfolders=True)
+    target = target.drop(columns=["partition_date"], errors="ignore")
+    target["visit_date"] = pd.to_datetime(target["visit_date"])
+    target["min_time_spent"] = target["min_time_spent"].astype(float)
+    return target
 
 
 @pytest.mark.parquet_data

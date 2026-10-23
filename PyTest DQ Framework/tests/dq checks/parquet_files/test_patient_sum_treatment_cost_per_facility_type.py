@@ -4,8 +4,8 @@ Requirement(s): DQE-HW-1
 Author(s): Mira
 """
 
+import pandas as pd
 import pytest
-
 
 @pytest.fixture(scope='module')
 def source_data(db_connection):
@@ -19,13 +19,18 @@ def source_data(db_connection):
     JOIN patients p ON v.patient_id = p.id
     GROUP BY f.facility_type, p.first_name, p.last_name
     """
-    return db_connection.get_data_sql(source_query)
+    source = db_connection.get_data_sql(source_query)
+    source["sum_treatment_cost"] = source["sum_treatment_cost"].astype(float)
+    return source
 
 
 @pytest.fixture(scope='module')
 def target_data(parquet_reader):
     target_path = '/parquet_data/patient_sum_treatment_cost_per_facility_type'
-    return parquet_reader.process(target_path, include_subfolders=True)
+    target = parquet_reader.process(target_path, include_subfolders=True)
+    target = target.drop(columns=["partition_date", "facility_type_partition"], errors="ignore")
+    target["sum_treatment_cost"] = target["sum_treatment_cost"].astype(float)
+    return target
 
 
 @pytest.mark.parquet_data
