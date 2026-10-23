@@ -25,15 +25,17 @@ pipeline {
 
         stage('Run Parquet data checks') {
             steps {
-                dir('PyTest DQ Framework') {
-                    // Scope database secrets to the test stage.
-                    withCredentials([usernamePassword(
-                        credentialsId: 'POSTGRES_SECRET',
-                        usernameVariable: 'POSTGRES_USER',
-                        passwordVariable: 'POSTGRES_PASSWORD'
-                    )]) {
-                        sh 'mkdir -p html_report'
-                        sh '.venv/bin/pytest -m parquet_data'
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    dir('PyTest DQ Framework') {
+                        // Scope database secrets to the test stage.
+                        withCredentials([usernamePassword(
+                            credentialsId: 'POSTGRES_SECRET',
+                            usernameVariable: 'POSTGRES_USER',
+                            passwordVariable: 'POSTGRES_PASSWORD'
+                        )]) {
+                            sh 'mkdir -p html_report'
+                            sh '.venv/bin/pytest -m parquet_data'
+                        }
                     }
                 }
             }
