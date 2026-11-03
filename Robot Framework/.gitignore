@@ -1,1 +1,9 @@
-results
+venv/
+__pycache__/
+*.pyc
+results/
+results_fail/
+debug_results/
+generated_report/
+parquet_data/
+selenium-screenshot-*.pngresults.zip
