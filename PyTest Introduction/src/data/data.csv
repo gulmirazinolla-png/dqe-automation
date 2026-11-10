@@ -1,6 +1,6 @@
 id,name,age,email,is_active
 1,Michael Jordan,60,michael.jordan@example.com,False
-2,LeBron James,40,lebron.james@example.com,False
+2,LeBron James,40,lebron.james@example.com,True
 3,Kobe Bryant,41,kobe.bryant@example.com,False
 4,Shaquille O'Neal,53,shaquille.oneal@example.com,False
 4,Shaquille O'Neal,53,shaquille.oneal@example.com,False
